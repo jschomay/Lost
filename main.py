@@ -1,5 +1,5 @@
 import pygame
-from sprites import Background
+from sprites import Background, Vignette
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -14,6 +14,7 @@ pygame.display.update()
 game_exit = False
 
 background = Background("images/background1.jpg", screen)
+vignette = Vignette(screen)
 
 while not game_exit:
     events = pygame.event.get()
@@ -24,7 +25,9 @@ while not game_exit:
     background.handle_events(events)
     background.update(screen)
     background.draw(screen)
+    vignette.draw(screen)
     pygame.display.flip()
+    
     clock.tick(60)
 
 pygame.quit()
