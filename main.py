@@ -1,5 +1,5 @@
 import pygame
-from sprites import Background, Vignette
+from sprites import Background, Vignette, EXIT_EVENT
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -27,11 +27,15 @@ while not game_exit:
     for event in events:
         if event.type == pygame.QUIT:
             gameExit = True
+        if event.type == EXIT_EVENT:
+            # print(event.exit)
+            True
 
     background.handle_events(events)
     background.update()
     background.draw()
     vignette.draw()
+    background.draw_exits()
     screen.blit(top_area, top_area_offset)
     pygame.display.flip()
 
