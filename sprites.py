@@ -5,14 +5,15 @@ EXIT_EVENT = pygame.USEREVENT + 1
 
 class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
-    SPEED = 2
+    SPEED = 1
     ZOOM_SPEED = 0.002
     EXIT_PROXIMITY = 100
+    EXIT_TRIGGER_PROXIMITY = EXIT_PROXIMITY / 3
 
     def __init__(self, background, screen):
         self.screen = screen
         pygame.sprite.Sprite.__init__(self)
-        self.original_image = pygame.image.load(background).convert()
+        self.original_image = background
         new_size = (screen.get_width() * self.INITIAL_SCALE_FACTOR,
                     screen.get_height() * self.INITIAL_SCALE_FACTOR)
         self.image = pygame.transform.scale(self.original_image, new_size)
@@ -29,17 +30,22 @@ class Background(pygame.sprite.Sprite):
 
     def update(self):
         self.move()
+        x_edge = self.screen.get_width() * 0.2
 
-        if self.position[0] > 0: self.position[0] = 0
-        if self.position[0] < self.screen.get_width() - self.image.get_width():
-            self.position[0] = self.screen.get_width() - self.image.get_width()
+        if self.position[0] > x_edge:
+            self.position[0] = x_edge
+        elif self.position[0] + x_edge < \
+            self.screen.get_width() - self.image.get_width():
+            self.position[0] = self.screen.get_width() - \
+                self.image.get_width() - x_edge
 
-        if self.position[1] > 0:
-            self.position[1] = 0
-        elif self.position[1] < self.screen.get_height(
-        ) - self.image.get_height():
-            self.position[1] = self.screen.get_height(
-            ) - self.image.get_height()
+        y_edge = self.screen.get_height() * 0.2
+        if self.position[1] > -0.2 * self.screen.get_height() + y_edge:
+            self.position[1] = -0.2 * self.screen.get_height() + y_edge
+        elif self.position[1] + y_edge < \
+            self.screen.get_height() - self.image.get_height():
+            self.position[1] = self.screen.get_height() - \
+                self.image.get_height() - y_edge
         else:
             self.y += self.speed_y
 
@@ -61,7 +67,8 @@ class Background(pygame.sprite.Sprite):
         exit_event = None
         screen_center = self.screen.get_rect().center
         for exit_name, exit_pos in self.exit_positions.items():
-            if exit_pos.distance_to(screen_center) < self.EXIT_PROXIMITY:
+            if exit_pos.distance_to(
+                    screen_center) < self.EXIT_TRIGGER_PROXIMITY:
                 exit_event = {"exit": exit_name}
                 break
 
@@ -104,6 +111,8 @@ class Background(pygame.sprite.Sprite):
         self.position[1] += self.speed_y
 
     def draw(self):
+        s = Vignette.circle_gradient(self, self.image.get_size())
+        self.image.blit(s, (0, 0))
         self.screen.blit(self.image, self.position)
 
     def draw_exits(self):
@@ -166,14 +175,14 @@ class Vignette():
                              (alpha_gradient.get_width(), y))
         return alpha_gradient
 
-    def circle_gradient(self, size):
+    def circle_gradient(self, size, smoothness=0.8):
         alpha_gradient = pygame.Surface(size, pygame.SRCALPHA)
         alpha_gradient.fill((0, 0, 0))
         radius = int(min(size) / 2)
         for y in range(radius):
             alpha = int(255 * (1 - y / radius))
             # pygame.draw.circle(alpha_gradient, (0, 0, 0, alpha), center, 1.0 * radius - y)
-            y = y * 0.8
+            y = y * smoothness
             rect = pygame.Rect(y, y, size[0] - y * 2, size[1] - y * 2)
             pygame.draw.ellipse(alpha_gradient, (0, 0, 0, alpha), rect)
         return alpha_gradient
