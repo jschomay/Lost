@@ -9,11 +9,30 @@ class Background(pygame.sprite.Sprite):
     ZOOM_SPEED = 0.002
     EXIT_PROXIMITY = 100
     EXIT_TRIGGER_PROXIMITY = EXIT_PROXIMITY / 3
+    ASPECT_RATIO = 1
 
     def __init__(self, background, screen):
         self.screen = screen
         pygame.sprite.Sprite.__init__(self)
+
         self.original_image = background
+
+        (screen_width, screen_height) = screen.get_size()
+        screen_aspect_ratio = screen_width / screen_height
+        if screen_aspect_ratio < self.ASPECT_RATIO:
+            new_size = (int(screen_height * self.ASPECT_RATIO), screen_height)
+        else:
+            new_size = (screen_width, int(screen_width / self.ASPECT_RATIO))
+        self.image = pygame.Surface(new_size)
+
+        cropped_offset = (
+            (self.original_image.get_width() - self.image.get_width()) / 2,
+            (self.original_image.get_height() - self.image.get_height()) / 2)
+        cropped_rect = pygame.Rect(cropped_offset[0], cropped_offset[1],
+                                   self.image.get_width(),
+                                   self.image.get_height())
+        self.image.blit(self.original_image.subsurface(cropped_rect), (0, 0))
+
         new_size = (screen.get_width() * self.INITIAL_SCALE_FACTOR,
                     screen.get_height() * self.INITIAL_SCALE_FACTOR)
         self.image = pygame.transform.scale(self.original_image, new_size)
@@ -111,8 +130,8 @@ class Background(pygame.sprite.Sprite):
         self.position[1] += self.speed_y
 
     def draw(self):
-        s = Vignette.circle_gradient(self, self.image.get_size())
-        self.image.blit(s, (0, 0))
+        # s = Vignette.circle_gradient(self, size)
+        # self.image.blit(s, (0,0))
         self.screen.blit(self.image, self.position)
 
     def draw_exits(self):

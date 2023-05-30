@@ -11,7 +11,7 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen.fill(background_color)
 pygame.display.set_caption('Lost')
 
-background_files = glob.glob("images/background*.jpg")
+background_files = glob.glob("images/background1*.jpg")
 background_images = []
 for file in background_files:
     img = pygame.image.load(file).convert()
