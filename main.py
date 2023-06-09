@@ -89,6 +89,7 @@ while not game_exit:
             background.kill()
             background = Background(scenes.pop(), top_area)
             story_text = random.choice(story_texts)
+            map.update(event.direction)
 
     background.handle_events(events)
     background.update()

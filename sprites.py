@@ -5,7 +5,7 @@ EXIT_EVENT = pygame.USEREVENT + 1
 
 class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
-    SPEED = 1
+    SPEED = 3
     ZOOM_SPEED = 0.002
     EXIT_PROXIMITY = 100
     EXIT_TRIGGER_PROXIMITY = EXIT_PROXIMITY / 3
@@ -100,11 +100,11 @@ class Background(pygame.sprite.Sprite):
 
         top = (bg_rect.width // 2, bg_rect.height * 0.2)
         top_vec = pos_vec + pygame.math.Vector2(top)
-        self.exit_positions["top"] = top_vec
+        self.exit_positions["up"] = top_vec
 
         bottom = (bg_rect.width // 2, bg_rect.height * 0.85)
         bottom_vec = pos_vec + pygame.math.Vector2(bottom)
-        self.exit_positions["bottom"] = bottom_vec
+        self.exit_positions["down"] = bottom_vec
 
         left = (bg_rect.width * 0.15, bg_rect.height // 2)
         left_vec = pos_vec + pygame.math.Vector2(left)
