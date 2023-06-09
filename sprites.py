@@ -88,7 +88,7 @@ class Background(pygame.sprite.Sprite):
         for exit_name, exit_pos in self.exit_positions.items():
             if exit_pos.distance_to(
                     screen_center) < self.EXIT_TRIGGER_PROXIMITY:
-                exit_event = {"exit": exit_name}
+                exit_event = {"direction": exit_name}
                 break
 
         if exit_event:
