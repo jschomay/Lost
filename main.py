@@ -59,6 +59,12 @@ def draw_story(text):
     story_area.fill(background_color)
     story_area.blit(text_surface, text_rect)
 
+def draw_fps():
+    fps_text = "FPS: " + str(clock.get_fps() * 100 // 100)
+    fps_text_surface = story_font.render(fps_text, True, (255, 255, 255), (0, 0, 0))
+    fps_text_rect = fps_text_surface.get_rect()
+    fps_text_rect.topleft = (10, screen.get_height() - 30)
+    screen.blit(fps_text_surface, fps_text_rect)
 
 # fade transition
 fade_alpha = 255
@@ -95,7 +101,7 @@ while not game_exit:
     background.update()
     background.draw()
     vignette.draw()
-    background.draw_exits()
+    # Vignette.feather(top_area, top_area.get_width() // 3)
     map.draw()
     screen.blit(top_area, top_area_offset)
     screen.blit(story_area, story_area_offset)
@@ -105,6 +111,8 @@ while not game_exit:
     fade_surface.fill((0, 0, 0, fade_alpha))
     screen.blit(fade_surface, (0, 0))
 
+    draw_fps()
+    
     pygame.display.flip()
 
     if fade_alpha > 0:

@@ -8,9 +8,6 @@ class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
     SPEED = 3
     ZOOM_SPEED = 0.002
-    # TODO base this off of image size
-    EXIT_PROXIMITY = 100
-    EXIT_TRIGGER_PROXIMITY = EXIT_PROXIMITY / 3
     ASPECT_RATIO = 1
 
     def __init__(self, background, screen):
@@ -47,29 +44,11 @@ class Background(pygame.sprite.Sprite):
         self.key_downs = set()
 
         self.exits = {}
-        self.update_exit_positions()
 
     def update(self):
         self.move()
-        x_edge = self.screen.get_width() * 0.2
 
-        if self.position[0] > x_edge:
-            self.position[0] = x_edge
-        elif self.position[0] + x_edge < \
-            self.screen.get_width() - self.image.get_width():
-            self.position[0] = self.screen.get_width() - \
-                self.image.get_width() - x_edge
-
-        y_edge = self.screen.get_height() * 0.2
-        if self.position[1] > -0.2 * self.screen.get_height() + y_edge:
-            self.position[1] = -0.2 * self.screen.get_height() + y_edge
-        elif self.position[1] + y_edge < \
-            self.screen.get_height() - self.image.get_height():
-            self.position[1] = self.screen.get_height() - \
-                self.image.get_height() - y_edge
-        else:
-            self.y += self.speed_y
-
+        self.y += self.speed_y
         zoom_factor = 1 + self.y * self.ZOOM_SPEED
 
         old_size = self.image.get_size()
@@ -84,37 +63,26 @@ class Background(pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.original_image, new_size)
 
         # check if exiting
-        self.update_exit_positions()
         exit_event = None
-        screen_center = self.screen.get_rect().center
-        for exit_name, exit_pos in self.exits.items():
-            if exit_pos.distance_to(
-                    screen_center) < self.EXIT_TRIGGER_PROXIMITY:
-                exit_event = {"direction": exit_name}
-                break
+        image_center = [
+            self.position[0] + self.image.get_width() / 2,
+            self.position[1] + self.image.get_height() / 2
+        ]
+
+        screen_width = self.screen.get_width()
+        screen_height = self.screen.get_height()
+
+        if image_center[0] < screen_width * -0.5:
+            exit_event = {"direction": "right"}
+        elif image_center[0] > screen_width * 1.5:
+            exit_event = {"direction": "left"}
+        elif image_center[1] < screen_height * -0.1:
+            exit_event = {"direction": "down"}
+        elif image_center[1] > screen_height * 1.4:
+            exit_event = {"direction": "up"}
 
         if exit_event:
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-
-    def update_exit_positions(self):
-        bg_rect = self.image.get_rect()
-        pos_vec = pygame.math.Vector2(self.position)
-
-        top = (bg_rect.width // 2, bg_rect.height * 0.1)
-        top_vec = pos_vec + pygame.math.Vector2(top)
-        self.exits["up"] = top_vec
-
-        bottom = (bg_rect.width // 2, bg_rect.height)
-        bottom_vec = pos_vec + pygame.math.Vector2(bottom)
-        self.exits["down"] = bottom_vec
-
-        left = (0, bg_rect.height // 2)
-        left_vec = pos_vec + pygame.math.Vector2(left)
-        self.exits["left"] = left_vec
-
-        right = (bg_rect.width, bg_rect.height // 2)
-        right_vec = pos_vec + pygame.math.Vector2(right)
-        self.exits["right"] = right_vec
 
     def move(self):
         self.speed_x = 0
@@ -132,37 +100,8 @@ class Background(pygame.sprite.Sprite):
         self.position[1] += self.speed_y
 
     def draw(self):
-        # s = Vignette.circle_gradient(self, size)
-        # self.image.blit(s, (0,0))
+        Vignette.feather(self.image, self.image.get_width() // 3)
         self.screen.blit(self.image, self.position)
-
-    def draw_exits(self):
-        for name, exit_pos in self.exits.items():
-            self.draw_exit(name, exit_pos)
-
-    def draw_exit(self, text, center):
-
-
-        yellow = (255, 255, 153)
-        black = (0, 0, 0)
-        white = (255, 255, 255)
-        radius_full = self.original_image.get_width() // 10
-        radius_full = 50
-        proximity = radius_full * 2
-        
-        screen_center = pygame.math.Vector2(self.screen.get_rect().center)
-        
-        distance = screen_center.distance_to(center)
-        p = utils.progress(proximity * 1, proximity * 1.5, distance)
-        
-        s = pygame.Surface((radius_full * 2, radius_full * 2), pygame.SRCALPHA)
-        draw_radius = radius_full - radius_full * p
-        pygame.draw.circle(s, black, (radius_full, radius_full), draw_radius)
-        # v = Vignette.circle_gradient(self, s.get_size())
-        # self.image.blit(v, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
-
-        self.screen.blit(s, (center[0] - radius_full, center[1] - radius_full))
-
 
     def handle_events(self, event_list):
         for event in event_list:
@@ -195,14 +134,49 @@ class Vignette():
                                  blit_pos,
                                  special_flags=pygame.BLEND_RGBA_MULT)
 
-    def linear_gradient(self, size):
-        alpha_gradient = pygame.Surface(size, pygame.SRCALPHA)
-        for y in range(alpha_gradient.get_height()):
-            alpha = int(255 * y / alpha_gradient.get_height())
-            pygame.draw.line(alpha_gradient, (255, 255, 255, alpha), (0, y),
-                             (alpha_gradient.get_width(), y))
-        return alpha_gradient
 
+    def linear_gradient_left(surface, size):
+        alpha_gradient = pygame.Surface((size, surface.get_height()),
+                                        pygame.SRCALPHA)
+        for x in range(0, size):
+            alpha = 255 - int(255 * x / size)
+            pygame.draw.line(alpha_gradient, (0, 0, 0, alpha), (x, 0),
+                             (x, alpha_gradient.get_height()))
+        surface.blit(alpha_gradient, (0, 0))
+
+    def linear_gradient_right(surface, size):
+    	alpha_gradient = pygame.Surface((size, surface.get_height()),
+    	                                pygame.SRCALPHA)
+    	for x in range(0, size):
+    		alpha = int(255 * x / size)
+    		pygame.draw.line(alpha_gradient, (0, 0, 0, alpha), (x, 0),
+    		                 (x, alpha_gradient.get_height()))
+    	surface.blit(alpha_gradient, (surface.get_width() - size, 0))
+        
+    def linear_gradient_top(surface, size):
+        alpha_gradient = pygame.Surface((surface.get_width(), size),
+                                        pygame.SRCALPHA)
+        for y in range(0, size):
+            alpha = 255 - int(255 * y / size)
+            pygame.draw.line(alpha_gradient, (0, 0, 0, alpha), (0, y),
+                             (alpha_gradient.get_width(), y))
+        surface.blit(alpha_gradient, (0, 0))
+        
+    def linear_gradient_bottom(surface, size):
+        alpha_gradient = pygame.Surface((surface.get_width(), size),
+                                        pygame.SRCALPHA)
+        for y in range(0, size):
+            alpha = int(255 * y / size)
+            pygame.draw.line(alpha_gradient, (0, 0, 0, alpha), (0, y),
+                             (alpha_gradient.get_width(), y))
+        surface.blit(alpha_gradient, (0, surface.get_height() - size))
+
+    def feather(surface, size):
+        Vignette.linear_gradient_top(surface, size)
+        Vignette.linear_gradient_bottom(surface, size)
+        Vignette.linear_gradient_left(surface, size)
+        Vignette.linear_gradient_right(surface, size)
+    
     def circle_gradient(self, size, smoothness=0.8):
         alpha_gradient = pygame.Surface(size, pygame.SRCALPHA)
         alpha_gradient.fill((0, 0, 0))
