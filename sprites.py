@@ -1,4 +1,5 @@
 import pygame
+import utils
 
 EXIT_EVENT = pygame.USEREVENT + 1
 
@@ -7,14 +8,15 @@ class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
     SPEED = 3
     ZOOM_SPEED = 0.002
+    # TODO base this off of image size
     EXIT_PROXIMITY = 100
     EXIT_TRIGGER_PROXIMITY = EXIT_PROXIMITY / 3
     ASPECT_RATIO = 1
 
     def __init__(self, background, screen):
-        self.screen = screen
         pygame.sprite.Sprite.__init__(self)
 
+        self.screen = screen
         self.original_image = background
 
         (screen_width, screen_height) = screen.get_size()
@@ -44,7 +46,7 @@ class Background(pygame.sprite.Sprite):
         self.y = 0
         self.key_downs = set()
 
-        self.exit_positions = {}
+        self.exits = {}
         self.update_exit_positions()
 
     def update(self):
@@ -81,11 +83,11 @@ class Background(pygame.sprite.Sprite):
 
         self.image = pygame.transform.scale(self.original_image, new_size)
 
+        # check if exiting
         self.update_exit_positions()
-
         exit_event = None
         screen_center = self.screen.get_rect().center
-        for exit_name, exit_pos in self.exit_positions.items():
+        for exit_name, exit_pos in self.exits.items():
             if exit_pos.distance_to(
                     screen_center) < self.EXIT_TRIGGER_PROXIMITY:
                 exit_event = {"direction": exit_name}
@@ -98,21 +100,21 @@ class Background(pygame.sprite.Sprite):
         bg_rect = self.image.get_rect()
         pos_vec = pygame.math.Vector2(self.position)
 
-        top = (bg_rect.width // 2, bg_rect.height * 0.2)
+        top = (bg_rect.width // 2, bg_rect.height * 0.1)
         top_vec = pos_vec + pygame.math.Vector2(top)
-        self.exit_positions["up"] = top_vec
+        self.exits["up"] = top_vec
 
-        bottom = (bg_rect.width // 2, bg_rect.height * 0.85)
+        bottom = (bg_rect.width // 2, bg_rect.height)
         bottom_vec = pos_vec + pygame.math.Vector2(bottom)
-        self.exit_positions["down"] = bottom_vec
+        self.exits["down"] = bottom_vec
 
-        left = (bg_rect.width * 0.15, bg_rect.height // 2)
+        left = (0, bg_rect.height // 2)
         left_vec = pos_vec + pygame.math.Vector2(left)
-        self.exit_positions["left"] = left_vec
+        self.exits["left"] = left_vec
 
-        right = (bg_rect.width * 0.85, bg_rect.height // 2)
+        right = (bg_rect.width, bg_rect.height // 2)
         right_vec = pos_vec + pygame.math.Vector2(right)
-        self.exit_positions["right"] = right_vec
+        self.exits["right"] = right_vec
 
     def move(self):
         self.speed_x = 0
@@ -135,25 +137,32 @@ class Background(pygame.sprite.Sprite):
         self.screen.blit(self.image, self.position)
 
     def draw_exits(self):
-        for name, exit_pos in self.exit_positions.items():
+        for name, exit_pos in self.exits.items():
             self.draw_exit(name, exit_pos)
 
     def draw_exit(self, text, center):
-        # font = pygame.font.SysFont('calibri', 16)
-        # text_surface = font.render(text, True, (255, 255, 255))
-        # text_rect = text_surface.get_rect(center=center)
-        # self.screen.blit(text_surface, text_rect)
 
-        screen_center = pygame.math.Vector2(self.screen.get_rect().center)
-        diamond_center = pygame.math.Vector2(center)
-        distance = screen_center.distance_to(diamond_center)
-        opacity = int(255 - 255 * 0.8 * pow(distance / self.EXIT_PROXIMITY, 2))
-        opacity = max(0, min(255, opacity))
+
         yellow = (255, 255, 153)
-        s = pygame.Surface((15, 22), pygame.SRCALPHA)
-        pygame.draw.polygon(s, yellow, [(7, 0), (14, 10), (7, 20), (0, 10)])
-        s.set_alpha(opacity)
-        self.screen.blit(s, center)
+        black = (0, 0, 0)
+        white = (255, 255, 255)
+        radius_full = self.original_image.get_width() // 10
+        radius_full = 50
+        proximity = radius_full * 2
+        
+        screen_center = pygame.math.Vector2(self.screen.get_rect().center)
+        
+        distance = screen_center.distance_to(center)
+        p = utils.progress(proximity * 1, proximity * 1.5, distance)
+        
+        s = pygame.Surface((radius_full * 2, radius_full * 2), pygame.SRCALPHA)
+        draw_radius = radius_full - radius_full * p
+        pygame.draw.circle(s, black, (radius_full, radius_full), draw_radius)
+        # v = Vignette.circle_gradient(self, s.get_size())
+        # self.image.blit(v, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
+
+        self.screen.blit(s, (center[0] - radius_full, center[1] - radius_full))
+
 
     def handle_events(self, event_list):
         for event in event_list:
