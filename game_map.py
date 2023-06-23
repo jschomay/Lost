@@ -12,7 +12,7 @@ yellow = (245, 245, 153)
 white = (255, 255, 255)
 
 
-class Map:
+class GameMap:
 
     def __init__(self, screen, starting_cell=[0, 0]):
         self.screen = screen
@@ -56,3 +56,6 @@ class Map:
         self.player_position[0] = self.player_position[0] % grid_cols
         self.player_position[1] = self.player_position[1] % grid_rows
         self.visited_coords.add(tuple(self.player_position))
+
+    def positon_to_index(self):
+        return self.player_position[0] + self.player_position[1] * grid_cols
