@@ -6,7 +6,6 @@ EXIT_EVENT = pygame.USEREVENT + 1
 
 class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
-    SPEED = 3
     ZOOM_SPEED = 0.002
     ASPECT_RATIO = 1
 
@@ -45,8 +44,8 @@ class Background(pygame.sprite.Sprite):
 
         self.exits = {}
 
-    def update(self):
-        self.move()
+    def update(self, speed_percent):
+        self.move(speed_percent)
 
         self.y += self.speed_y
         zoom_factor = 1 + self.y * self.ZOOM_SPEED
@@ -84,17 +83,18 @@ class Background(pygame.sprite.Sprite):
         if exit_event:
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
 
-    def move(self):
+    def move(self, speed_percent):
+        speed = 1 + 2 * speed_percent
         self.speed_x = 0
         self.speed_y = 0
         if pygame.K_UP in self.key_downs:
-            self.speed_y += self.SPEED
+            self.speed_y += speed
         if pygame.K_DOWN in self.key_downs:
-            self.speed_y += -self.SPEED
+            self.speed_y += -speed
         if pygame.K_LEFT in self.key_downs:
-            self.speed_x += self.SPEED
+            self.speed_x += speed
         if pygame.K_RIGHT in self.key_downs:
-            self.speed_x += -self.SPEED
+            self.speed_x += -speed
 
         self.position[0] += self.speed_x
         self.position[1] += self.speed_y
@@ -118,21 +118,8 @@ class Vignette():
 
     def __init__(self, screen):
         self.screen = screen
-        black = (0, 0, 0)
         self.vignette_layer = pygame.Surface(screen.get_size(),
                                              pygame.SRCALPHA)
-        self.vignette_layer.fill(black)
-        circle_gradient = self.circle_gradient(screen.get_size())
-        circle_center = (int(screen.get_width() / 2),
-                         int(screen.get_height() / 2))
-        scale_factor = 1.0
-        circle_gradient = pygame.transform.rotozoom(circle_gradient, 0,
-                                                    scale_factor)
-        blit_pos = (int(circle_center[0] - circle_gradient.get_width() / 2),
-                    int(circle_center[1] - circle_gradient.get_height() / 2))
-        self.vignette_layer.blit(circle_gradient,
-                                 blit_pos,
-                                 special_flags=pygame.BLEND_RGBA_MULT)
 
 
     def linear_gradient_left(surface, size):
@@ -189,5 +176,18 @@ class Vignette():
             pygame.draw.ellipse(alpha_gradient, (0, 0, 0, alpha), rect)
         return alpha_gradient
 
-    def draw(self):
+    def draw(self, amount):
+        black = (0, 0, 0)
+        self.vignette_layer.fill(black)
+        circle_gradient = self.circle_gradient(self.screen.get_size())
+        circle_center = (int(self.screen.get_width() / 2),
+                         int(self.screen.get_height() / 2))
+        scale_factor = 0.5 + 0.5 * amount
+        circle_gradient = pygame.transform.rotozoom(circle_gradient, 0,
+                                                    scale_factor)
+        blit_pos = (int(circle_center[0] - circle_gradient.get_width() / 2),
+                    int(circle_center[1] - circle_gradient.get_height() / 2))
+        self.vignette_layer.blit(circle_gradient,
+                                 blit_pos,
+                                 special_flags=pygame.BLEND_RGBA_MULT)
         self.screen.blit(self.vignette_layer, (0, 0))

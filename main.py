@@ -44,17 +44,18 @@ story_font.set_italic(True)
 
 
 def draw_story(text, width):
-    words = text.split()
     lines = []
-    current_line = ""
-    for word in words:
-        test_line = current_line + " " + word if current_line else word
-        if story_font.size(test_line)[0] > width:
-            lines.append(current_line)
-            current_line = word
-        else:
-            current_line = test_line
-    lines.append(current_line)
+    for line in text.split("\n"):
+        words = line.split(" ")
+        current_line = ""
+        for word in words:
+            test_line = current_line + " " + word if current_line else word
+            if story_font.size(test_line)[0] > width:
+                lines.append(current_line)
+                current_line = word
+            else:
+                current_line = test_line
+        lines.append(current_line)
 
     story_area.fill(background_color)
     line_height = story_font.get_linesize()
@@ -184,7 +185,7 @@ while not game_exit:
             if stats["courage"] == 0:
                 game_over = True
                 fade_alpha = 0
-                story_text += "  You lost your courage.  Game Over."
+                story_text += "\nYou lost your courage.  Game Over."
 
             if current_scene["filename"] == "hut1.png":
                 game_over = True
@@ -194,9 +195,10 @@ while not game_exit:
                                     top_area)
 
     background.handle_events(events)
-    background.update()
+    background.update(stats["vigor"] / 5)
     background.draw()
-    vignette.draw()
+    vignette.draw(stats["courage"] / 5)
+    Vignette.feather(top_area, 40)
     game_map.draw()
     draw_story(story_text, story_area.get_width())
     screen.blit(top_area, top_area_offset)
