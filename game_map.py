@@ -23,10 +23,10 @@ class GameMap:
         self.visited_coords.add(tuple(self.player_position))
 
     def draw(self, level = 0):
+        self.screen.fill((0, 0, 0))
 
         if level < 1: return
             
-        self.screen.fill((0, 0, 0))
         for x in range(grid_cols):
             for y in range(grid_rows):
                 rect = pygame.Rect((cell_size + margin) * x + margin,

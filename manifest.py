@@ -129,7 +129,7 @@ manifest = [{
     "filename": "hut1.png",
     "on_discover": {
         "description":
-        "You made it back home safely!  It's good to be home.  \nYou win!",
+        "You made it back home safely!  It's good to be home.  \nYou win!\nPress 'Enter' to play again.",
         "stats": []
     },
     "on_return": {
