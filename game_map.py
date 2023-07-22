@@ -14,7 +14,8 @@ white = (255, 255, 255)
 
 class GameMap:
 
-    def __init__(self, screen, starting_cell=[0, 0]):
+    def __init__(self, screen, starting_index = 0):
+        starting_cell = self.index_to_position(starting_index)
         self.screen = screen
         self.player_position = starting_cell
         self.visited_coords = set()
@@ -59,3 +60,7 @@ class GameMap:
 
     def positon_to_index(self):
         return self.player_position[0] + self.player_position[1] * grid_cols
+    
+    def index_to_position(self, index):
+        return [index % grid_cols, index // grid_cols]
+
