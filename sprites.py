@@ -95,7 +95,17 @@ class Background(pygame.sprite.Sprite):
             self.speed_x += speed
         if pygame.K_RIGHT in self.key_downs:
             self.speed_x += -speed
-
+        
+        # Normalize speed vector
+        speed_magnitude = (self.speed_x ** 2 + self.speed_y ** 2) ** 0.5
+        if speed_magnitude != 0:
+            self.speed_x /= speed_magnitude
+            self.speed_y /= speed_magnitude
+        
+        # Multiply speed vector by constant value
+        self.speed_x *= speed
+        self.speed_y *= speed
+        
         self.position[0] += self.speed_x
         self.position[1] += self.speed_y
 

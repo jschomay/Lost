@@ -56,7 +56,7 @@ manifest = [{
     "filename": "campfire.jpg",
     "on_discover": {
         "description":
-        "You approach a campfire, its gentle flames dancing in the night. The comforting glow and the crackling of burning logs are a welcome sight. \n(Vigor +1)",
+        "You approach a bonfire, its flames dancing in the night. The comforting glow and the crackling of burning logs are a welcome sight. \n(Vigor +1)",
         "stats": [{
             "stat": "vigor",
             "diff": 1
@@ -91,7 +91,7 @@ manifest = [{
     "filename": "foggy path.jpeg",
     "on_discover": {
         "description":
-        "A foggy path winds through the dense forest, its misty tendrils concealing secrets and uncertainty. As you tread softly, you sense a hidden presence observing your every move. \n(Courage -1)",
+        "A fog rolls through the dense forest, its misty tendrils concealing secrets and uncertainty. As you tread softly, you sense a hidden presence observing your every move. \n(Courage -1)",
         "stats": [{
             "stat": "courage",
             "diff": -1
@@ -108,7 +108,7 @@ manifest = [{
     "filename": "hills and path.jpg",
     "on_discover": {
         "description":
-        "You ascend the hills, the path stretching before you like an adventure waiting to unfold. With each step, excitement fills your chest, and you can't help but wonder what awaits at the summit. \n(Courage +2, Vigor -1)",
+        "You ascend a steep hill. With each step, you breath harder from the exertion, but you can't help but wonder what awaits at the summit. \n(Courage +2, Vigor -1)",
         "stats": [{
             "stat": "courage",
             "diff": 2
@@ -140,7 +140,7 @@ manifest = [{
     "filename": "lamp post.jpg",
     "on_discover": {
         "description":
-        "It's getting dark.  You need to find your way back to your cabin.",
+        "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?",
         "stats": []
     },
     "on_return": {
@@ -174,7 +174,7 @@ manifest = [{
     "filename": "meadow4.jpg",
     "on_discover": {
         "description":
-        "A breathtaking meadow stretches before you, a symphony of colors beneath the vast blue sky. As you walk through this enchanting oasis, you feel as though the worries of the world melt away. \n(Vigor +2, Courage +2)",
+        "You emerge into a clearing in the trees. As you walk through this enchanting oasis, you feel as though the worries of the world melt away. \n(Vigor +2, Courage +2)",
         "stats": [{
             "stat": "vigor",
             "diff": 2
@@ -206,7 +206,7 @@ manifest = [{
     "filename": "pond night.jpeg",
     "on_discover": {
         "description":
-        "By the tranquil pond, the moon's gentle reflection dances on the rippling water. In the stillness of the night, a sense of serenity envelops you. \n(Courage +1)",
+        "The moon's gentle reflection dances in a tranquil pond. In the stillness of the night, a sense of serenity envelops you. \n(Courage +1)",
         "stats": [{
             "stat": "courage",
             "diff": 1

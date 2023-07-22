@@ -141,7 +141,8 @@ class Game():
                         stat, diff = stat_def.values()
                         if stat == "vigor" and diff < 0 \
                             and abs(diff) > self.stats["vigor"]:
-                            self.stats["courage"] -= abs(diff) - stats["vigor"]
+                            self.stats["courage"] -= abs(
+                                diff) - self.stats["vigor"]
                         self.stats[stat] = min(5,
                                                max(0, self.stats[stat] + diff))
 
