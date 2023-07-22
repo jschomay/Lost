@@ -154,7 +154,7 @@ manifest = [{
     "filename": "meadow3.jpg",
     "on_discover": {
         "description":
-        "You step into a vast, sun-drenched meadow teeming with vibrant wildflowers. The sweet scent of blooming blossoms fills the air, and you find peace in the embrace of nature's untouched beauty.  \n(Courage +2, Vigor +2)",
+        "You step into a vast, meadow teeming with vibrant wildflowers. The sweet scent of blooming blossoms fills the air, and you find peace in the embrace of nature's untouched beauty.  \n(Courage +2, Vigor +2)",
         "stats": [{
             "stat": "courage",
             "diff": 2

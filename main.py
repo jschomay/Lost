@@ -107,7 +107,7 @@ def draw_stats():
 
     for i in range(5):
         rect = pygame.Rect(
-            courage_text_rect.width + margin * 3 + x + i * (width + margin),
+            courage_text_rect.width + margin + x + i * (width + margin),
             y - 15, width, height)
         if i < stats["vigor"]:
             pygame.draw.rect(screen, fill_color, rect)
@@ -116,7 +116,7 @@ def draw_stats():
 
     for i in range(5):
         rect = pygame.Rect(
-            courage_text_rect.width + margin * 3 + x + i * (width + margin),
+            courage_text_rect.width + margin + x + i * (width + margin),
             y - 15 + vigor_text_rect.height, width, height)
         if i < stats["courage"]:
             pygame.draw.rect(screen, fill_color, rect)
@@ -133,14 +133,22 @@ fade_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 stats = {"vigor": 5, "courage": 5}
 visited = set()
 
-index = 0
+starting_index = 0
 for i, scene in enumerate(scenes):
     if scene['filename'] == 'lamp post.jpg':
-        index = i
+        starting_index = i
+        break
+ending_index = 0
+for i, scene in enumerate(scenes):
+    if scene['filename'] == 'hut1.png':
+        ending_index = i
         break
 
+map_level = 0
+map_item_locations = set(random.sample(range(0, 15), 3))
+
 vignette = Vignette(top_area)
-game_map = GameMap(map_area, index)
+game_map = GameMap(map_area, starting_index, ending_index)
 
 current_scene_index = game_map.positon_to_index()
 visited.add(current_scene_index)
@@ -168,10 +176,26 @@ while not game_exit:
             fade_alpha = 255
             background.kill()
             game_map.update(event.direction)
+
             current_scene_index = game_map.positon_to_index()
             trigger = "on_return" if current_scene_index in visited else "on_discover"
             visited.add(current_scene_index)
             current_scene = scenes[current_scene_index]
+
+            story_text = get_story_text(current_scene, trigger)
+
+            if map_level == 0 and current_scene_index in map_item_locations:
+                map_level = 1
+                map_item_locations.remove(current_scene_index)
+                story_text += "\nYou found a map!"
+            elif map_level == 1 and current_scene_index in map_item_locations:
+                map_level = 2
+                map_item_locations.remove(current_scene_index)
+                story_text += "\nYou found a compass!"
+            elif map_level == 2 and current_scene_index in map_item_locations:
+                map_level = 3
+                map_item_locations.remove(current_scene_index)
+                story_text += "\nYou found some binoculars!"
 
             for stat_def in current_scene[trigger]["stats"]:
                 stat, diff = stat_def.values()
@@ -180,12 +204,10 @@ while not game_exit:
                     stats["courage"] -= abs(diff) - stats["vigor"]
                 stats[stat] = min(5, max(0, stats[stat] + diff))
 
-            story_text = get_story_text(current_scene, trigger)
-
             if stats["courage"] == 0:
                 game_over = True
                 fade_alpha = 0
-                story_text += "\nYou lost your courage.  Game Over."
+                story_text += "\nYou lost your courage.  Game over."
 
             if current_scene["filename"] == "hut1.png":
                 game_over = True
@@ -199,7 +221,7 @@ while not game_exit:
     background.draw()
     vignette.draw(stats["courage"] / 5)
     Vignette.feather(top_area, 40)
-    game_map.draw()
+    game_map.draw(map_level)
     draw_story(story_text, story_area.get_width())
     screen.blit(top_area, top_area_offset)
     screen.blit(story_area, story_area_offset)
