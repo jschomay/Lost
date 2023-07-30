@@ -175,7 +175,7 @@ class Game():
 
             self.draw_stats()
 
-            self.draw_fps()
+            # self.draw_fps()
 
             pygame.display.flip()
 

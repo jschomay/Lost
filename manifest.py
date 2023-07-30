@@ -140,7 +140,7 @@ manifest = [{
     "filename": "lamp post.jpg",
     "on_discover": {
         "description":
-        "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?",
+        "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?\n(Use arrow keys to move.  Mind your stats.)",
         "stats": []
     },
     "on_return": {
