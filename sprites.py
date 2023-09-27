@@ -8,8 +8,9 @@ class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
     FULL_SCALE_FACTOR = 1.5
     ASPECT_RATIO = 1
-    BASE_SPEED = 0.5
-    MAX_SPEED_INC = 1
+    BASE_SPEED = 0.7
+    MAX_SPEED_INC = 0.2
+
     FEATHER_SIZE = 3
 
     def __init__(self, image, screen):
@@ -48,16 +49,16 @@ class Background(pygame.sprite.Sprite):
         self.scale_image()
 
         # check for exit
-        if self.position[0] > self.screen.get_width():
+        if self.position[0] > self.screen.get_width() * 0.4:
             exit_event = {"direction": "left"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[0] < -self.screen.get_width():
+        elif self.position[0] < -self.screen.get_width() * 0.4:
             exit_event = {"direction": "right"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[1] > self.screen.get_height() * 1.2:
+        elif self.position[1] > self.screen.get_height() * 0.5:
             exit_event = {"direction": "up"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[1] < -self.screen.get_height() * 0.6:
+        elif self.position[1] < -self.screen.get_height() * 0.4:
             exit_event = {"direction": "down"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
 

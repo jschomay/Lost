@@ -2,7 +2,49 @@ import pygame
 from sprites import Background, Vignette, EXIT_EVENT
 import random
 from game_map import GameMap
-from manifest import manifest
+import os
+import requests
+import time
+from io import BytesIO
+
+LOST_ASSET_SERVER_TOKEN = os.environ['LOST_ASSET_SERVER_TOKEN']
+
+
+def starting_scene():
+    return {
+        "image":
+        "https://cdn.leonardo.ai/users/9130cf8e-bad3-409f-bc7a-f26ee62f1ff7/generations/84dba93d-b227-4e63-9b30-c99a23914f6d/lost_forest_sparse_forest_scene_a_glowing_lantern_atop_a_lamp_1.jpg",
+        "img": pygame.image.load("images/lamp.jpg").convert(),
+        "on_discover": {
+            "description":
+            "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?\n(Use arrow keys to move.  Move to the edges of the scene to explore.  Mind your stats.)",
+            "stats": []
+        },
+        "on_return": {
+            "description": "Oh no. Back where you started. \n(Courage -1)",
+            "stats": [{
+                "stat": "courage",
+                "diff": -1
+            }]
+        }
+    }
+
+
+def ending_scene():
+    return {
+        "image":
+        "https://cdn.leonardo.ai/users/9130cf8e-bad3-409f-bc7a-f26ee62f1ff7/generations/ae093aa7-438f-49ef-9c73-cd0254c2b70d/lost_forest_sparse_forest_scene_a_welcoming_cottage_light_shi_0.jpg",
+        "img": pygame.image.load("images/home.jpg").convert(),
+        "on_discover": {
+            "description":
+            "You made it back home safely!  It's good to be home.  \nYou win!\nPress 'Enter' to play again.",
+            "stats": []
+        },
+        "on_return": {
+            "description": "Home sweet home",
+            "stats": []
+        }
+    }
 
 
 class Game():
@@ -17,12 +59,9 @@ class Game():
         self.screen.fill(self.background_color)
         pygame.display.set_caption('Lost')
 
-        self.background_images = {}
-        for scene in manifest:
-            img = pygame.image.load("images/backgrounds/" +
-                                    scene["filename"]).convert()
-            self.background_images[scene["filename"]] = img
-
+        # wake up server if sleeping (can take 5s)
+        requests.get("https://lost-game-ai-assets-server.fly.dev/scenes")
+        
         # top area
         top_area_size = int(self.screen.get_height() * 0.6)
         self.top_area = pygame.Surface((top_area_size, top_area_size))
@@ -60,36 +99,53 @@ class Game():
         self.visited = set()
         self.fade_alpha = 255
 
-        self.scenes = random.sample(manifest, len(manifest))
-
-        starting_index = 0
-        for i, scene in enumerate(self.scenes):
-            if scene['filename'] == 'lamp post.jpg':
-                starting_index = i
-                break
-
-        ending_index = 0
-        for i, scene in enumerate(self.scenes):
-            if scene['filename'] == 'hut1.png':
-                ending_index = i
-                break
-
         self.map_level = 0
-        self.map_item_locations = set(random.sample(range(0, 15), 3))
 
-        self.game_map = GameMap(self.map_area, starting_index, ending_index)
+        self.scenes = {i: None for i in range(16)}
+        self.start, self.end, *map_items = random.sample(
+            sorted(self.scenes), 2 + 3)
+        self.scenes[self.start] = starting_scene()
+        self.scenes[self.end] = ending_scene()
+        self.current_scene_index = self.start
+        self.map_item_locations = set(map_items)
+
+        self.game_map = GameMap(self.map_area, self.start, self.end)
 
         self.current_scene_index = self.game_map.positon_to_index()
         self.visited.add(self.current_scene_index)
+
+        if self.scenes[self.current_scene_index] == None:
+            self.scenes[self.current_scene_index] = self.fetch_scene()
         self.current_scene = self.scenes[self.current_scene_index]
 
         self.set_story_text()
-        self.background = Background(
-            self.background_images[self.current_scene["filename"]],
-            self.top_area)
+        self.background = Background(self.current_scene["img"], self.top_area)
 
         self.game_exit = False
         self.game_over = False
+
+    def fetch_scene(self):
+        # print("fetching scene for", self.current_scene_index)
+        headers = {
+            "accept": "application/json",
+            "authorization": f"Bearer {LOST_ASSET_SERVER_TOKEN}",
+        }
+        i = 0
+        while True and i < 10:
+            response = requests.get(
+                "https://lost-game-ai-assets-server.fly.dev/scene",
+                headers=headers)
+            s = response.json()
+            if not s["image"]:
+                print("failed to fetch scene, will retry", s)
+                i += 1
+                time.sleep(5)
+            else:
+                break
+        res = requests.get(s["image"])
+        img = pygame.image.load(BytesIO(res.content)).convert()
+        s["img"] = img
+        return s
 
     def run(self):
         while not self.game_exit:
@@ -115,11 +171,17 @@ class Game():
                     self.game_map.update(event.direction)
 
                     self.current_scene_index = self.game_map.positon_to_index()
-                    trigger = "on_return" if self.current_scene_index in self.visited else "on_discover"
-                    self.visited.add(self.current_scene_index)
+
+                    # get new scene
+                    if self.scenes[self.current_scene_index] == None:
+                        self.scenes[
+                            self.current_scene_index] = self.fetch_scene()
                     self.current_scene = self.scenes[self.current_scene_index]
 
+                    trigger = "on_return" if self.current_scene_index in self.visited else "on_discover"
                     self.set_story_text(trigger)
+                    
+                    self.visited.add(self.current_scene_index)
 
                     if self.map_level == 0 and self.current_scene_index in self.map_item_locations:
                         self.map_level = 1
@@ -138,7 +200,8 @@ class Game():
                         self.story_text += "\nYou found some binoculars!"
 
                     for stat_def in self.current_scene[trigger]["stats"]:
-                        stat, diff = stat_def.values()
+                        stat = stat_def["stat"]
+                        diff = stat_def["diff"]
                         if stat == "vigor" and diff < 0 \
                             and abs(diff) > self.stats["vigor"]:
                             self.stats["courage"] -= abs(
@@ -151,13 +214,12 @@ class Game():
                         self.fade_alpha = 0
                         self.story_text += "\nYou lost your courage.  Game over.\nPress 'Enter' to try again."
 
-                    if self.current_scene["filename"] == "hut1.png":
+                    if self.current_scene_index == self.end:
                         self.game_over = True
                         self.fade_alpha = 0
 
-                    self.background = Background(
-                        self.background_images[self.current_scene["filename"]],
-                        self.top_area)
+                    self.background = Background(self.current_scene["img"],
+                                                 self.top_area)
 
             self.background.handle_events(events)
             self.background.update(self.stats["vigor"] / 5)
@@ -175,7 +237,7 @@ class Game():
 
             self.draw_stats()
 
-            # self.draw_fps()
+            self.draw_fps()
 
             pygame.display.flip()
 
@@ -185,6 +247,7 @@ class Game():
             self.clock.tick(60)
 
     def clean_up(self):
+        self.scenes = None
         self.background.kill()
         self.game_map = None
 
@@ -228,6 +291,12 @@ class Game():
 
     def set_story_text(self, trigger="on_discover"):
         self.story_text = self.current_scene[trigger]["description"]
+        stats = []
+        for stat in self.current_scene[trigger]["stats"]:
+            sign = "+" if stat["diff"] >= 0 else ""
+            stats.append(f"{stat['stat']} {sign}{stat['diff']}")
+        if len(stats) > 0:
+            self.story_text += f" ({', '.join(stats)})"
 
     def draw_stats(self):
         fill_color = (245, 245, 153)
