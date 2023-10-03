@@ -8,10 +8,10 @@ class Background(pygame.sprite.Sprite):
     INITIAL_SCALE_FACTOR = 2
     FULL_SCALE_FACTOR = 1.5
     ASPECT_RATIO = 1
-    BASE_SPEED = 0.7
+    BASE_SPEED = 0.9
     MAX_SPEED_INC = 0.2
 
-    FEATHER_SIZE = 3
+    FEATHER_SIZE = 8
 
     def __init__(self, image, screen):
         pygame.sprite.Sprite.__init__(self)

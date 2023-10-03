@@ -7,7 +7,7 @@ import requests
 import time
 from io import BytesIO
 
-LOST_ASSET_SERVER_TOKEN = os.environ['LOST_ASSET_SERVER_TOKEN']
+LOST_ASSET_SERVER_TOKEN = os.environ['LOST_ASSET_SERVER_TOKEN'] or "c9c4b898-36c1-486e-b0be-4f1790ab452c"
 
 
 def starting_scene():
@@ -21,7 +21,7 @@ def starting_scene():
             "stats": []
         },
         "on_return": {
-            "description": "Oh no. Back where you started. \n(Courage -1)",
+            "description": "Oh no. Back where you started.",
             "stats": [{
                 "stat": "courage",
                 "diff": -1
@@ -55,13 +55,15 @@ class Game():
         self.clock = pygame.time.Clock()
 
         self.background_color = (0, 0, 0)
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        size = [0, 0]
+        flags = pygame.NOFRAME
+        self.screen = pygame.display.set_mode(size, flags)
         self.screen.fill(self.background_color)
         pygame.display.set_caption('Lost')
 
         # wake up server if sleeping (can take 5s)
         requests.get("https://lost-game-ai-assets-server.fly.dev/scenes")
-        
+
         # top area
         top_area_size = int(self.screen.get_height() * 0.6)
         self.top_area = pygame.Surface((top_area_size, top_area_size))
@@ -77,7 +79,7 @@ class Game():
                                 self.map_area.get_width(), 40)
 
         # story area
-        story_area_size = (self.screen.get_width() * 0.9, \
+        story_area_size = (self.screen.get_width() * 0.6, \
                            self.screen.get_height() - top_area_size)
         self.story_area = pygame.Surface(story_area_size)
         self.story_area_offset = (self.screen.get_width() // 2 -
@@ -180,7 +182,7 @@ class Game():
 
                     trigger = "on_return" if self.current_scene_index in self.visited else "on_discover"
                     self.set_story_text(trigger)
-                    
+
                     self.visited.add(self.current_scene_index)
 
                     if self.map_level == 0 and self.current_scene_index in self.map_item_locations:
@@ -202,10 +204,11 @@ class Game():
                     for stat_def in self.current_scene[trigger]["stats"]:
                         stat = stat_def["stat"]
                         diff = stat_def["diff"]
-                        if stat == "vigor" and diff < 0 \
-                            and abs(diff) > self.stats["vigor"]:
-                            self.stats["courage"] -= abs(
-                                diff) - self.stats["vigor"]
+                        # bleedover
+                        # if stat == "vigor" and diff < 0 \
+                        #     and abs(diff) > self.stats["vigor"]:
+                        #     self.stats["courage"] -= abs(
+                        #         diff) - self.stats["vigor"]
                         self.stats[stat] = min(5,
                                                max(0, self.stats[stat] + diff))
 
@@ -224,8 +227,8 @@ class Game():
             self.background.handle_events(events)
             self.background.update(self.stats["vigor"] / 5)
             self.background.draw()
-            self.vignette.draw(self.stats["courage"] / 5)
-            Vignette.feather(self.top_area, 40)
+            self.vignette.draw(self.stats["courage"] / 2)
+            Vignette.feather(self.top_area, 5)
             self.game_map.draw(self.map_level)
             self.draw_story()
             self.screen.blit(self.top_area, self.top_area_offset)
@@ -237,7 +240,7 @@ class Game():
 
             self.draw_stats()
 
-            self.draw_fps()
+            # self.draw_fps()
 
             pygame.display.flip()
 
