@@ -7,8 +7,6 @@ import requests
 import time
 from io import BytesIO
 
-LOST_ASSET_SERVER_TOKEN = os.environ['LOST_ASSET_SERVER_TOKEN'] or "c9c4b898-36c1-486e-b0be-4f1790ab452c"
-
 
 def starting_scene():
     return {
@@ -128,15 +126,10 @@ class Game():
 
     def fetch_scene(self):
         # print("fetching scene for", self.current_scene_index)
-        headers = {
-            "accept": "application/json",
-            "authorization": f"Bearer {LOST_ASSET_SERVER_TOKEN}",
-        }
         i = 0
         while True and i < 10:
             response = requests.get(
-                "https://lost-game-ai-assets-server.fly.dev/scene",
-                headers=headers)
+                "https://lost-game-ai-assets-server.fly.dev/scene")
             s = response.json()
             if not s["image"]:
                 print("failed to fetch scene, will retry", s)
@@ -236,7 +229,8 @@ class Game():
             self.screen.blit(self.map_area, self.map_area_offset)
 
             self.fade_surface.fill((0, 0, 0, self.fade_alpha))
-            self.screen.blit(self.fade_surface, (0, 0))
+            # stopped working for some reason, fine without it
+            # self.screen.blit(self.fade_surface, (0, 0))
 
             self.draw_stats()
 

@@ -49,16 +49,16 @@ class Background(pygame.sprite.Sprite):
         self.scale_image()
 
         # check for exit
-        if self.position[0] > self.screen.get_width() * 0.4:
+        if self.position[0] > self.screen.get_width() * 0.5:
             exit_event = {"direction": "left"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[0] < -self.screen.get_width() * 0.4:
+        elif self.position[0] < -self.screen.get_width() * 0.5:
             exit_event = {"direction": "right"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[1] > self.screen.get_height() * 0.5:
+        elif self.position[1] > self.screen.get_height() * 0.4:
             exit_event = {"direction": "up"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
-        elif self.position[1] < -self.screen.get_height() * 0.4:
+        elif self.position[1] < -self.screen.get_height() * 0.3:
             exit_event = {"direction": "down"}
             pygame.event.post(pygame.event.Event(EXIT_EVENT, exit_event))
 

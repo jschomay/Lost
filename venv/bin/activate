@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/runner/Pygame/venv"
+VIRTUAL_ENV="/Users/jeff/Downloads/Lost-forest-survival-game/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

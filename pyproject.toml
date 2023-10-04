@@ -7,7 +7,7 @@ authors = ["Your Name <you@example.com>"]
 [tool.poetry.dependencies]
 python = ">=3.8.0,<3.9"
 pygame = "^2.1.2"
-dearpygui = "^1.6.2"
+dearpygui = "1.4.0"
 requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
