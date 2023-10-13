@@ -12,7 +12,7 @@ Every scene you encounter is unique to your play through.  It is created on dema
 
 ## To install and run
 
-With (poetry)[https://python-poetry.org/]:
+With [poetry](https://python-poetry.org/):
 
 - `poetry install`
 - `poetry run python main.py`
