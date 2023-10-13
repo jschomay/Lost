@@ -2,7 +2,7 @@ from game import Game
 
 game = Game()
 
-while True:
+while game.play_again:
     game.init()
     game.run()
     game.clean_up()

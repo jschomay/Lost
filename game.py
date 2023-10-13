@@ -3,19 +3,32 @@ from sprites import Background, Vignette, EXIT_EVENT
 import random
 from game_map import GameMap
 import os
+import sys
 import requests
 import time
 from io import BytesIO
 
+def resource_path(relative_path):
+    """
+    For pyinstaller
+    """
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 def starting_scene():
+    url = resource_path("images/lamp.jpg")
     return {
         "image":
         "https://cdn.leonardo.ai/users/9130cf8e-bad3-409f-bc7a-f26ee62f1ff7/generations/84dba93d-b227-4e63-9b30-c99a23914f6d/lost_forest_sparse_forest_scene_a_glowing_lantern_atop_a_lamp_1.jpg",
-        "img": pygame.image.load("images/lamp.jpg").convert(),
+        "img": pygame.image.load(url).convert(),
         "on_discover": {
             "description":
-            "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?\n(Use arrow keys to move.  Move to the edges of the scene to explore.  Mind your stats.)",
+            "It's getting dark.  You need to find your way back to your cabin.  Which way was it again?\n(Use arrow keys to move.  Move to the edges of the scene to explore.  Mind your stats.  Press 'q' to quit.)",
             "stats": []
         },
         "on_return": {
@@ -29,10 +42,11 @@ def starting_scene():
 
 
 def ending_scene():
+    url = resource_path("images/home.jpg")
     return {
         "image":
         "https://cdn.leonardo.ai/users/9130cf8e-bad3-409f-bc7a-f26ee62f1ff7/generations/ae093aa7-438f-49ef-9c73-cd0254c2b70d/lost_forest_sparse_forest_scene_a_welcoming_cottage_light_shi_0.jpg",
-        "img": pygame.image.load("images/home.jpg").convert(),
+        "img": pygame.image.load(url).convert(),
         "on_discover": {
             "description":
             "You made it back home safely!  It's good to be home.  \nYou win!\nPress 'Enter' to play again.",
@@ -52,6 +66,7 @@ class Game():
 
         self.clock = pygame.time.Clock()
 
+        self.play_again = True
         self.background_color = (0, 0, 0)
         size = [0, 0]
         flags = pygame.NOFRAME
@@ -95,6 +110,7 @@ class Game():
         self.vignette = Vignette(self.top_area)
 
     def init(self):
+        self.play_again = False
         self.stats = {"vigor": 5, "courage": 5}
         self.visited = set()
         self.fade_alpha = 255
@@ -144,10 +160,14 @@ class Game():
 
     def run(self):
         while not self.game_exit:
+            keys_pressed = pygame.key.get_pressed()
             events = pygame.event.get()
+            if keys_pressed[pygame.K_q] or keys_pressed[pygame.K_ESCAPE]:
+                self.game_exit = True
+
             if self.game_over:
-                keys_pressed = pygame.key.get_pressed()
                 if keys_pressed[pygame.K_RETURN]:
+                    self.play_again = True
                     self.game_exit = True
                 continue
 
@@ -208,7 +228,7 @@ class Game():
                     if self.stats["courage"] == 0:
                         self.game_over = True
                         self.fade_alpha = 0
-                        self.story_text += "\nYou lost your courage.  Game over.\nPress 'Enter' to try again."
+                        self.story_text += "\nYou lost your courage.  Game over.\nPress 'Enter' to try again or 'q' to quit."
 
                     if self.current_scene_index == self.end:
                         self.game_over = True
