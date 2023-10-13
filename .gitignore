@@ -3,3 +3,5 @@ venv
 .upm
 __pycache__
 .config
+build
+dist
